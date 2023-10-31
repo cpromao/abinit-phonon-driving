@@ -15,13 +15,13 @@ qpt_gamma = 1;
 t_0 = 0; %peak time in ps
 t_1 = t_0 + 5.5; %final time 
 
-% phonon_c = 5;
-% coupling111 = 0.00199488097856232 ; % Units: eV Angstrom^-3 amu^-1.5 (M L^2 T^-2 * M^-1.5 L^-3 = M^-0.5 L^-1 T^-2) 
-% exportname = '5_106_108.mat';
+phonon_c = 5;
+coupling111 = 0.00199488097856232 ; % Units: eV Angstrom^-3 amu^-1.5 (M L^2 T^-2 * M^-1.5 L^-3 = M^-0.5 L^-1 T^-2) 
+exportname = '5_106_108.mat';
 
-phonon_c = 107;
-coupling111 = 0.0561535485560740 ;
-exportname = '107_106_108.mat';
+% phonon_c = 107;
+% coupling111 = 0.0561535485560740 ;
+% exportname = '107_106_108.mat';
 
 %% Constants
 
@@ -224,9 +224,12 @@ end
 
 %% FFT
 
-fft_Qc = fft(sol.y(3,:),100000);
+t_eval = linspace(0,5,5000);
+Q_eval = deval(sol,t_eval);
 
-%% Save variables for plotting
+fft_Qc = fft(Q_eval(3,:),1000);
+
+%% Save variables for external plotting
 
 i = phonon_c;
 
@@ -244,7 +247,7 @@ save(exportname,"times","Q_ci","chi_ci","freqi","Si","ffti")
 linew = 1;
 time_append = linspace(-2,0,10);
 Q_cappend = linspace(0,0,10);
-plottime = cat(2,time_append,sol.x);
+plottime = cat(2,time_append,sol.x)*1000;
 Q_cplot = cat(2,Q_cappend,sol.y(3,:));
 Splot = cat(2,Q_cappend,S);
 orange = '#D95319';
@@ -273,10 +276,11 @@ a2.FaceAlpha = 0.5;
 p = plot(plottime,Q_cplot*scale,'LineWidth',linew,'Color',orange);
 p2 = plot(plottime,-Q_cplot*scale,'LineWidth',linew,'Color',lblue);
 
-xlabel('t [ps]')
+xlabel('t [fs]')
 ylabel('Q_c [Å amu^{1/2} \times 10^{-3}]')
-xlim([-0.5,1.5])
-ylim([-0.2,0.2])
+xlim([-300,1100])
+
+% ylim([-0.2,0.2])
 
 ax = gca;
 
@@ -296,43 +300,49 @@ ylabel('||FFT(\omega)||')
 ax1 = gca;
 set(ax1,'XTickLabel',[])
 
-xlim([0,100])
+xlim([0,110])
 
 nexttile
 
-plot(freq1,log(abs(chi_c)),'LineWidth',linew,'Color',lime);
+plot(freq1,log10(abs(chi_c)),'LineWidth',linew,'Color',lime);
 
 ylabel('|\chi(\omega, \omega_0)|')
-%yticklabels({'10^{-30}','10^{-25}','10^{-20}','10^{-15}'})
 xlabel('\omega / 2\pi [THz]')
-xlim([0,100])
+xlim([0,110])
 
-
-%yticklabels({'10^{-30}','10^{-25}','10^{-20}','10^{-15}'})
-yticklabels({'10^{-23}','10^{-21}','10^{-19}'})
-ylim([-23,-18.9])
+if phonon_c == 5
+   yticklabels({'10^{-12}','10^{-10}','10^{-8}', '10^{-6}'})
+else
+    yticklabels({'10^{-10}','10^{-9}','10^{-8}'})
+    ylim([-10,-8])
+end
 
 ax2 = gca;
 
 
 %% Do some post-adjustment of figures
 
-xt = [0 25 50 75 100];
 
-set(ax1,'xtick',xt)
-set(ax2,'xtick',xt)
+xt2 = [0 25 50 75 100];
+xt1 = xt2;
 
-xt2 = [-0.5 0 0.5 1 1.5];
-set(ax,'xtick',xt2)
+set(ax1,'xtick',xt1)
+set(ax2,'xtick',xt2)
 
-yt = [-23 -21 -19];
-set(ax2,'ytick',yt)
+xt = [-250 0 250 500 750 1000];
+set(ax,'xtick',xt)
 
-% yt2 = [-1.5 -1 -0.5 0 0.5 1 1.5];
-% set(ax,'ytick',yt2)
-
-yt2 = [-0.2 -0.1 0 0.1 0.2];
-set(ax,'ytick',yt2)
+if phonon_c == 5
+    yt = [-12 -10 -8 -6];
+    set(ax2,'ytick',yt)
+    yt2 = [-1.5 -1 -0.5 0 0.5 1 1.5];
+    set(ax,'ytick',yt2)
+else
+    yt = [-10 -9 -8];
+    set(ax2,'ytick',yt)
+    yt2 = [-0.2 -0.1 0 0.1 0.2];
+    set(ax,'ytick',yt2)
+end
 
 ax2.XAxis.FontSize = 12;
 ax2.XLabel.FontSize = 16;
