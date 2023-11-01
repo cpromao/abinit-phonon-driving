@@ -215,12 +215,14 @@ S = movmean(sol.y(3,:),[1000,500]);
 %% Solve Eq 10
 
 freqlim = 120;
-freq1 = linspace(0,freqlim,1000);
+freq1 = linspace(0,freqlim,100000);
 
 for i = 1:size(freq1,2)
     freq2 = omega_d1;
-    chi_c(i) = - coupling111 * mec_d1 *mec_d2 / ((omega_c^2 - freq1(i)^2 + 1i*freq1(i)*linew_c) * (omega_d1^2 - (freq1(i)-freq2)^2 + 1i*(freq1(i)-freq2)*linew_d1) * (omega_d2^2 - freq2^2 + 1i*(freq2)*linew_d2));
+    chi_c(i) = - (coupling111) * (mec_d1 *mec_d2 * pm) / ((omega_c^2 - freq1(i)^2 + 1i*freq1(i)*linew_c/(2*pi)) * (omega_d1^2 - (freq1(i)-freq2)^2 + 1i*(freq1(i)-freq2)*linew_d1/(2*pi)) * (omega_d2^2 - freq2^2 + 1i*(freq2)*linew_d2/(2*pi))*(2*pi)^6);
 end
+
+chi_c_SI = chi_c * (e2C^2 * 1e-24 * amu2k^-2 * 1e20);% *(1e10 * amu2k^0.5); % convert to SI units
 
 %% FFT
 
@@ -290,7 +292,7 @@ hold off
 
 f2 = figure;
 
-tiledlayout(2,1)
+tiledlayout(2,1,"TileSpacing","compact")
 
 nexttile
 
@@ -304,24 +306,26 @@ xlim([0,110])
 
 nexttile
 
-plot(freq1,log10(abs(chi_c)),'LineWidth',linew,'Color',lime);
+plot(freq1,log10(abs(chi_c_SI)),'LineWidth',linew,'Color',lime);
 
-ylabel('|\chi(\omega, \omega_0)|')
+ylabel('|\chi| [(m/V)^2]')
 xlabel('\omega / 2\pi [THz]')
 xlim([0,110])
 
+
+yticklabels({'10^{0}','10^{2}','10^{4}'})
+
 if phonon_c == 5
-   yticklabels({'10^{-12}','10^{-10}','10^{-8}', '10^{-6}'})
+    ylim([-0.5,5.5])
 else
-    yticklabels({'10^{-10}','10^{-9}','10^{-8}'})
-    ylim([-10,-8])
+    ylim([0,4])
 end
+
 
 ax2 = gca;
 
 
 %% Do some post-adjustment of figures
-
 
 xt2 = [0 25 50 75 100];
 xt1 = xt2;
@@ -333,12 +337,12 @@ xt = [-250 0 250 500 750 1000];
 set(ax,'xtick',xt)
 
 if phonon_c == 5
-    yt = [-12 -10 -8 -6];
-    set(ax2,'ytick',yt)
+     yt = [0 2 4];
+     set(ax2,'ytick',yt)
     yt2 = [-1.5 -1 -0.5 0 0.5 1 1.5];
     set(ax,'ytick',yt2)
 else
-    yt = [-10 -9 -8];
+    yt = [0 2 4];
     set(ax2,'ytick',yt)
     yt2 = [-0.2 -0.1 0 0.1 0.2];
     set(ax,'ytick',yt2)
@@ -354,5 +358,3 @@ ax.XAxis.FontSize = 12;
 ax.XLabel.FontSize = 16;
 ax.YAxis.FontSize = 12;
 ax.YLabel.FontSize = 16;
-
-
